@@ -176,7 +176,26 @@ public class Table implements Serializable,Iterable<Table.Row>{
 		}
 		return values;
 	}
-	
+	public void flushRowsToCSV(CSVWriter writer) throws IOException{
+		for(Row row:data){
+			String[] rowData = new String[columnTitles.size()];
+			for(String key:row.keySet()){
+				ColumnSerializer serializer = columnSerializers.get(key);
+				if(serializer == null) 
+					serializer = new StringSerializer();
+				rowData[columnIndexes.get(key)] = serializer.serialize(row.get(key));
+			}
+			writer.writeNext(rowData);
+		}
+		writer.flush();
+		data.clear();
+	}
+	public CSVWriter startWriteToCSV(File out) throws IOException{
+		CSVWriter writer = new CSVWriter(new FileWriter(out));
+		writer.writeNext(columnTitles.toArray(new String[columnTitles.size()]));
+		writer.flush();
+		return writer;
+	}
 	public void writeToCSV(File out) throws IOException{
 		CSVWriter writer = new CSVWriter(new FileWriter(out));
 		writer.writeNext(columnTitles.toArray(new String[columnTitles.size()]));
