@@ -213,7 +213,9 @@ public class Table implements Serializable,Iterable<Table.Row>{
 		writer.close();
 	}
 	
-	
+	public void clearRows(){
+		data = new ArrayList<Row>();
+	}
 	@Override
 	public Iterator<Row> iterator() {
 		return data.iterator();

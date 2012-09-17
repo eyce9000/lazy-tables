@@ -8,9 +8,13 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.grl.tables.Table;
 
 public class MySQLStorage {
+	private Logger logger = LoggerFactory.getLogger(MySQLStorage.class);
 	private Connection conn;
 
 	public MySQLStorage(Connection conn) {
@@ -88,8 +92,14 @@ public class MySQLStorage {
 			}
 			else{
 				Class<?> type = table.getColumnType(column);
+				if(type==null)
+					logger.error("Completely null column:"+column);
 				if(type.isAssignableFrom(Boolean.class))
 					definition+=" TINYINT(1)";
+				else if(type.isAssignableFrom(double[].class))
+					definition+=" TEXT";
+				else if(type.isAssignableFrom(int[].class))
+					definition+=" TEXT";
 				else
 					definition+=" VARCHAR(512)";
 			}
@@ -109,16 +119,16 @@ public class MySQLStorage {
 		st.executeUpdate(definition);
 		st.close();
 	}
-	
 	public boolean storeTable(Table table, String schemaname, String tablename, boolean force) throws SQLException {
 		if(tableExists(schemaname,tablename)){
-			if(!force)
-				return false;
-			else{
+			if(force){
 				dropTable(schemaname,tablename);
+				createTable(table,schemaname,tablename);
 			}
 		}
-		createTable(table,schemaname,tablename);
+		else{
+			createTable(table,schemaname,tablename);
+		}
 		
 		String part1 = "INSERT INTO "+schemaname+"."+tablename+" (";
 		String part2 = "VALUES(";
@@ -135,7 +145,7 @@ public class MySQLStorage {
 		part1+=") ";
 		part2+=") ";
 		String statement = part1+part2;
-		System.out.println(statement);
+		logger.info(statement);
 		PreparedStatement ps = conn.prepareStatement(statement);
 		for(Table.Row row:table){
 			for(int i=1; i<=table.getColumnsTitles().size(); i++){
@@ -152,11 +162,36 @@ public class MySQLStorage {
 					ps.setInt(i, ((Integer) value).intValue());
 				else if(value instanceof Boolean)
 					ps.setBoolean(i, ((Boolean) value).booleanValue());
+				else if(value instanceof double[])
+					ps.setString(i, serializeArray((double[])value));
+				else if(value instanceof int[])
+					ps.setString(i, serializeArray((int[])value));
 				else
 					ps.setString(i, value.toString());
 			}
 			ps.executeUpdate();
 		}
 		return true;
+	}
+
+	private static String serializeArray(int[] data){
+		String serialize = "[";
+		for(int i=0; i<data.length; i++){
+			serialize += data[i];
+			if(i<data.length-1)
+				serialize += ",";
+		}
+		serialize += "]";
+		return serialize;
+	}
+	private static String serializeArray(double[] data){
+		String serialize = "[";
+		for(int i=0; i<data.length; i++){
+			serialize += data[i];
+			if(i<data.length-1)
+				serialize += ",";
+		}
+		serialize += "]";
+		return serialize;
 	}
 }
