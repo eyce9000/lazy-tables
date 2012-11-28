@@ -6,7 +6,9 @@ public class StringSerializer implements ColumnSerializer{
 
 	@Override
 	public String serialize(Object value) {
-		return value.toString();
+		if(value!=null)
+			return value.toString();
+		return null;
 	}
 
 	@Override
