@@ -34,8 +34,15 @@ public class CSVStorage {
 	}
 	
 	public Table loadTable(File file) throws Exception{
-		Table table = new Table();
 		CSVReader reader = new CSVReader(new FileReader(file));
+		return loadTable(reader);
+	}
+	public Table loadTable(File file, char separator) throws Exception{
+		CSVReader reader = new CSVReader(new FileReader(file),separator);
+		return loadTable(reader);
+	}
+	private Table loadTable(CSVReader reader) throws Exception{
+		Table table = new Table();
 		String[] header = reader.readNext();
 		String[] row;
 		while((row=reader.readNext())!=null){
