@@ -12,6 +12,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import com.grl.tables.ColumnSerializer;
 import com.grl.tables.Table;
 import com.grl.tables.Table.Row;
+import com.grl.tables.events.RowReadListener;
 import com.grl.tables.serializers.StringSerializer;
 
 public class CSVStorage {
@@ -33,6 +34,10 @@ public class CSVStorage {
 		writer.close();
 	}
 	
+	public void readTable(File file, RowReadListener listener) throws Exception{
+		CSVReader reader = new CSVReader(new FileReader(file));
+		readTable(reader,listener);
+	}
 	public Table loadTable(File file) throws Exception{
 		CSVReader reader = new CSVReader(new FileReader(file));
 		return loadTable(reader);
@@ -43,12 +48,16 @@ public class CSVStorage {
 	}
 	private Table loadTable(CSVReader reader) throws Exception{
 		Table table = new Table();
+		RowAppender appender = new RowAppender(table);
+		readTable(reader,appender);
+		return table;
+	}
+	private void readTable(CSVReader reader, RowReadListener listener) throws Exception{
 		String[] header = reader.readNext();
 		String[] row;
 		while((row=reader.readNext())!=null){
-			table.appendRow(readRow(row,header));
+			listener.onRowRead(readRow(row,header));
 		}
-		return table;
 	}
 	
 	public Row readRow(String[] rowData, String[] header){
@@ -73,5 +82,26 @@ public class CSVStorage {
 			row.put(key, rawValue);
 		}
 		return row;
+	}
+	
+	class RowAppender implements RowReadListener{
+		private Table table;
+		public RowAppender(Table table){
+			this.table = table;
+		}
+		@Override
+		public void onRowRead(Row row) {
+			table.appendRow(row);
+		}
+		@Override
+		public void readStart() {
+			// TODO Auto-generated method stub
+			
+		}
+		@Override
+		public void readComplete() {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 }

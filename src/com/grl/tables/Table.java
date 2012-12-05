@@ -69,9 +69,13 @@ public class Table implements Serializable, Iterable<Table.Row> {
 			setColumnIndex(i, titles[i]);
 		}
 	}
-
-	public void sortColumnsAlphabetical() {
+	public void sortColumnsAlphabetical(){
+		sortColumnsAlphabetical(true);
+	}
+	public void sortColumnsAlphabetical(boolean ascending) {
 		Collections.sort(columnTitles);
+		if(!ascending)
+			Collections.reverse(columnTitles);
 		recalculateColumnIndexes();
 	}
 
@@ -349,7 +353,40 @@ public class Table implements Serializable, Iterable<Table.Row> {
 				field.setAccessible(wasPublic);
 			}
 		}
-
+		
+		public <T> T deserialize(Class<T> type){
+			try{
+				T object = type.newInstance();
+				Field[] fields = object.getClass().getDeclaredFields();
+				
+				for(Field field :fields){
+					
+					boolean wasPublic = field.isAccessible();
+					field.setAccessible(true);
+					TableColumn annotation = field.getAnnotation(TableColumn.class);
+					if(annotation!=null){
+						String key = annotation.name();
+						try {
+							Object value = this.get(key);
+							if(key!=null && value!=null){
+								if(field.getType().isInstance("")){
+									field.set(object, value.toString());
+								}
+							}
+						} catch(Exception ex){
+							ex.printStackTrace();
+						}
+					}
+					field.setAccessible(wasPublic);
+				}
+				return object;
+			}
+			catch(Exception ex){
+				ex.printStackTrace();
+				return null;
+			}
+		}
+		
 		public <T> T getAs(String key, Class<T> type) {
 			Object value = get(key);
 			try {
