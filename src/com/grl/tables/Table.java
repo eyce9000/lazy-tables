@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
+import com.grl.tables.annotations.TableColumn;
 import com.grl.tables.serializers.StringSerializer;
 
 import au.com.bytecode.opencsv.CSVWriter;
@@ -34,7 +37,7 @@ public class Table implements Serializable, Iterable<Table.Row> {
 			appendRow(row);
 		}
 	}
-
+	
 	public int appendRow(Map<String, Object> row) {
 		for (String key : row.keySet()) {
 			if (!columnIndices.containsKey(key)) {
@@ -322,6 +325,29 @@ public class Table implements Serializable, Iterable<Table.Row> {
 
 		public Row(Map<String, Object> data) {
 			super(data);
+		}
+		
+		public Row(Object pojo){
+			super();
+			Field[] fields = pojo.getClass().getDeclaredFields();
+			for(Field field:fields){
+
+				boolean wasPublic = field.isAccessible();
+				field.setAccessible(true);
+				TableColumn annotation = field.getAnnotation(TableColumn.class);
+				if(annotation!=null){
+					String key = annotation.name();
+					try {
+						Object value = field.get(pojo);
+						if(key!=null){
+							this.put(key, value);
+						}
+					} catch(Exception ex){
+						ex.printStackTrace();
+					}
+				}
+				field.setAccessible(wasPublic);
+			}
 		}
 
 		public <T> T getAs(String key, Class<T> type) {
