@@ -38,6 +38,35 @@ public class CSVStorage {
 		CSVReader reader = new CSVReader(new FileReader(file));
 		readTable(reader,listener);
 	}
+	public void readTable(File file, RowReadListener listener, char separator) throws Exception{
+		CSVReader reader = new CSVReader(new FileReader(file),separator);
+		readTable(reader,listener);
+	}
+	public void loadIntoTable(Table table, File file) throws Exception{
+		CSVReader reader = new CSVReader(new FileReader(file));
+		loadIntoTable(table,reader);
+		
+	}
+	public void loadIntoTable(Table table, File file, char separator) throws Exception{
+		CSVReader reader = new CSVReader(new FileReader(file),separator);
+		loadIntoTable(table,reader);
+	}
+	public void loadIntoTable(final Table table,CSVReader reader) throws Exception{
+		RowReadListener listener = new RowReadListener(){
+			@Override
+			public void readStart() {
+			}
+			@Override
+			public void onRowRead(Row row) {
+				table.appendRow(row);
+			}
+			@Override
+			public void readComplete() {
+			}
+		};
+		readTable(reader,listener);
+	}
+	
 	public Table loadTable(File file) throws Exception{
 		CSVReader reader = new CSVReader(new FileReader(file));
 		return loadTable(reader);
@@ -71,14 +100,14 @@ public class CSVStorage {
 				continue;
 			}
 			//Is the value numeric?
-			try{
-				value = Double.parseDouble(rawValue);
-				row.put(key, value);
-				continue;
-			}
-			catch(NumberFormatException ex){
+			//try{
+			//	value = Double.parseDouble(rawValue);
+			//	row.put(key, value);
+			//	continue;
+			//}
+			//catch(NumberFormatException ex){
 				
-			}
+			//}
 			row.put(key, rawValue);
 		}
 		return row;

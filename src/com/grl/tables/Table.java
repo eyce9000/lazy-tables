@@ -110,6 +110,10 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	public int columnCount() {
 		return columnTitles.size();
 	}
+	
+	public int rowCount(){
+		return data.size();
+	}
 
 	public Row getRow(int index) {
 		return data.get(index);
