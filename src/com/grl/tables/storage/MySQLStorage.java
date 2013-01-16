@@ -16,27 +16,6 @@ public class MySQLStorage extends SQLStorage {
 	}
 	
 	@Override
-	public boolean tableExists(String tableSchema,String tableName)
-			throws SQLException {
-
-		DatabaseMetaData md = conn.getMetaData();
-		Statement st = conn.createStatement();
-		PreparedStatement ps = conn.prepareStatement("select * from information_schema.tables where " +
-				"table_schema=? and table_name=?");
-		ps.setString(1, tableSchema);
-		ps.setString(2, tableName);
-		ResultSet rs = ps.executeQuery();
-		try {
-			if (rs.next())
-				return true;
-			return false;
-		} finally {
-			rs.close();
-		}
-
-	}
-	
-	@Override
 	public void createTable(Table table, String schemaName, String tableName) throws SQLException{
 		String definition = "CREATE TABLE "+schemaName+"."+tableName+"(";
 		for(int i=0; i<table.getColumnsTitles().size(); i++){

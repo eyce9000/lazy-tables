@@ -73,7 +73,27 @@ public abstract class SQLStorage {
 		return tableFromResultSet(conn.createStatement().executeQuery("SELECT * FROM "+tableSchema+"."+tableName));
 	}
 
-	public abstract boolean tableExists(String tableSchema,String tableName) throws SQLException;
+	public boolean tableExists(String tableSchema,String tableName)
+			throws SQLException {
+
+		DatabaseMetaData md = conn.getMetaData();
+//		ResultSet rs = md.getTables(null,null,null,null);
+//		for(int i=1; i<=rs.getMetaData().getColumnCount(); i++){
+//			System.out.print(rs.getMetaData().getColumnName(i)+"\t");
+//		}
+//		System.out.println("");
+//		while(rs.next()){
+//			for(int i=1; i<=rs.getMetaData().getColumnCount(); i++){
+//				System.out.print(rs.getString(i)+"\t");
+//			}
+//			System.out.println("");
+//		}
+	
+		if (md.getTables("", tableSchema.toUpperCase(), tableName.toUpperCase(), null).next())
+			return true;
+		return false;
+
+	}
 	
 	public abstract void createTable(Table table, String schemaName, String tableName) throws SQLException;
 	
@@ -110,6 +130,7 @@ public abstract class SQLStorage {
 		part2+=") ";
 		String statement = part1+part2;
 		//logger.info(statement);
+		conn.setAutoCommit(false);
 		PreparedStatement ps = conn.prepareStatement(statement);
 		for(Table.Row row:table){
 			for(int i=1; i<=table.getColumnsTitles().size(); i++){
@@ -130,11 +151,15 @@ public abstract class SQLStorage {
 					ps.setString(i, serializeArray((double[])value));
 				else if(value instanceof int[])
 					ps.setString(i, serializeArray((int[])value));
+				else if(value == null)
+					ps.setString(i, null);
 				else
 					ps.setString(i, value.toString());
 			}
-			ps.executeUpdate();
+			ps.addBatch();
 		}
+		ps.executeBatch();
+		conn.setAutoCommit(true);
 		return true;
 	}
 
