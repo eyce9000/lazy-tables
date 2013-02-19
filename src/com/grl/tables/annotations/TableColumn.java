@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface TableColumn {
 	public String name();
+	public String domain() default "default";
 }

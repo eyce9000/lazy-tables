@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,9 +34,7 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	}
 
 	public Table(List<Map<String, Object>> values) {
-		for (Map<String, Object> row : values) {
-			appendRow(row);
-		}
+		appendAll(values);
 	}
 	
 	public int appendRow(Map<String, Object> row) {
@@ -48,7 +47,11 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		data.add(new Row(row));
 		return data.size() - 1;
 	}
-
+	public void appendAll(Collection<Map<String,Object>> rows){
+		for (Map<String, Object> row : rows) {
+			appendRow(row);
+		}
+	}
 	public void appendAll(Table table) {
 		for (Row row : table.data) {
 			appendRow(row);
@@ -103,6 +106,10 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		return new ArrayList<String>(columnTitles);
 	}
 
+	public String getColumnTitle(int index){
+		return columnTitles.get(index);
+	}
+	
 	public Map<String, Integer> getColumnIndices() {
 		return new HashMap<String, Integer>(this.columnIndices);
 	}
@@ -126,7 +133,10 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		}
 		return values;
 	}
-
+	public <T> List<T> getColumnValues(int columnNumber, Class<T> type){
+		String columnTitle = getColumnTitle(columnNumber);
+		return getColumnValues(columnTitle,type);
+	}
 	public boolean hasColumn(String columnTitle) {
 		return this.columnIndices.containsKey(columnTitle);
 	}
@@ -326,6 +336,9 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		return new ArrayList<Row>(data);
 	}
 
+	
+	
+	
 	public static class Row extends HashMap<String, Object> {
 		public Row() {
 			super();
@@ -359,6 +372,10 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		}
 		
 		public <T> T deserialize(Class<T> type){
+			return deserialize(type,null);
+		}
+		
+		private <T> T deserialize(Class<T> type, String domain){
 			try{
 				T object = type.newInstance();
 				Field[] fields = object.getClass().getDeclaredFields();
@@ -375,6 +392,8 @@ public class Table implements Serializable, Iterable<Table.Row> {
 							if(key!=null && value!=null){
 								if(field.getType().isInstance("")){
 									field.set(object, value.toString());
+								}else{
+									field.set(object,value);
 								}
 							}
 						} catch(Exception ex){
