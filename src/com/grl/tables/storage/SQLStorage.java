@@ -36,7 +36,7 @@ public abstract class SQLStorage {
 			Table.Row row = new Table.Row();
 			for (int i = 1; i <= md.getColumnCount(); i++) {
 				String name = md.getColumnName(i);
-				Object value = null;
+				String value = null;
 				int type = md.getColumnType(i);
 				switch (type) {
 
@@ -44,19 +44,19 @@ public abstract class SQLStorage {
 				case java.sql.Types.DOUBLE:
 				case java.sql.Types.FLOAT:
 				case java.sql.Types.BIGINT:
-					value = rs.getDouble(i);
+					value = new Double(rs.getDouble(i)).toString();
 					break;
 
 				case java.sql.Types.INTEGER:
 				case java.sql.Types.SMALLINT:
-					value = rs.getInt(i);
+					value = new Integer(rs.getInt(i)).toString();
 					break;
 				
 				
 					
 				case java.sql.Types.BOOLEAN:
 				case java.sql.Types.TINYINT:
-					value = rs.getBoolean(i);
+					value = new Boolean(rs.getBoolean(i)).toString();
 					break;
 				
 				default:

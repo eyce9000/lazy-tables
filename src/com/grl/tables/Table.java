@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
@@ -33,11 +31,11 @@ public class Table implements Serializable, Iterable<Table.Row> {
 
 	}
 
-	public Table(List<Map<String, Object>> values) {
+	public Table(List<Map<String, String>> values) {
 		appendAll(values);
 	}
 	
-	public int appendRow(Map<String, Object> row) {
+	public int appendRow(Map<String, String> row) {
 		for (String key : row.keySet()) {
 			if (!columnIndices.containsKey(key)) {
 				columnIndices.put(key, columnTitles.size());
@@ -47,8 +45,8 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		data.add(new Row(row));
 		return data.size() - 1;
 	}
-	public void appendAll(Collection<Map<String,Object>> rows){
-		for (Map<String, Object> row : rows) {
+	public void appendAll(Collection<Map<String,String>> rows){
+		for (Map<String, String> row : rows) {
 			appendRow(row);
 		}
 	}
@@ -87,7 +85,7 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		recalculateColumnIndexes();
 	}
 
-	public void insertStaticColumn(int index, String columnTitle, Object value) {
+	public void insertStaticColumn(int index, String columnTitle, String value) {
 		columnTitles.add(index, columnTitle);
 		for (Row row : data) {
 			row.put(columnTitle, value);
@@ -339,12 +337,12 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	
 	
 	
-	public static class Row extends HashMap<String, Object> {
+	public static class Row extends HashMap<String, String> {
 		public Row() {
 			super();
 		}
 
-		public Row(Map<String, Object> data) {
+		public Row(Map<String, String> data) {
 			super(data);
 		}
 		
@@ -359,7 +357,7 @@ public class Table implements Serializable, Iterable<Table.Row> {
 				if(annotation!=null){
 					String key = annotation.name();
 					try {
-						Object value = field.get(pojo);
+						String value = (String)field.get(pojo);
 						if(key!=null){
 							this.put(key, value);
 						}

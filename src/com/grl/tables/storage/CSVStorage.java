@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
@@ -52,21 +54,16 @@ public class CSVStorage {
 		loadIntoTable(table,reader);
 	}
 	public void loadIntoTable(final Table table,CSVReader reader) throws Exception{
-		RowReadListener listener = new RowReadListener(){
-			@Override
-			public void readStart() {
-			}
-			@Override
-			public void onRowRead(Row row) {
-				table.appendRow(row);
-			}
-			@Override
-			public void readComplete() {
-			}
-		};
-		readTable(reader,listener);
+		readTable(reader,new RowAppender(table));
 	}
-	
+	public Table loadTable(Reader inputReader) throws Exception{
+		CSVReader reader = new CSVReader(inputReader);
+		return loadTable(reader);
+	}
+	public Table loadTable(Reader inputReader, char separator) throws Exception{
+		CSVReader reader = new CSVReader(inputReader,separator);
+		return loadTable(reader);
+	}
 	public Table loadTable(File file) throws Exception{
 		CSVReader reader = new CSVReader(new FileReader(file));
 		return loadTable(reader);
@@ -84,9 +81,11 @@ public class CSVStorage {
 	private void readTable(CSVReader reader, RowReadListener listener) throws Exception{
 		String[] header = reader.readNext();
 		String[] row;
+		listener.readStart();
 		while((row=reader.readNext())!=null){
 			listener.onRowRead(readRow(row,header));
 		}
+		listener.readComplete();
 	}
 	
 	public Row readRow(String[] rowData, String[] header){
@@ -94,8 +93,11 @@ public class CSVStorage {
 		for(int i=0; i<header.length; i++){
 			Object value;
 			String key = header[i];
-			String rawValue = rowData[i];
-			if(rawValue.length()==0){
+			String rawValue = null;
+			if(i<rowData.length){
+				rawValue = rowData[i];
+			}
+			if(rawValue == null || rawValue.length()==0){
 				row.put(key, null);
 				continue;
 			}

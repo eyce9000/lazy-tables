@@ -20,7 +20,7 @@ public class KeyedTable<T> extends Table{
 			this.keyedColumns.add(key);
 		}
 	}
-	public int appendRow(Map<String,Object> row){
+	public int appendRow(Map<String,String> row){
 		int index = super.appendRow(row);
 		for(String key:keyedColumns){
 			if(row.containsKey(key))

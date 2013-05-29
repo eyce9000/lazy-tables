@@ -1,0 +1,9 @@
+<ivy-module version="1.0">
+    <info organisation="tem.email" module="tem-action-notifier"/>
+    <dependencies>
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.2"/>
+        <dependency org="org.slf4j" name="slf4j-simple" rev="1.7.2"/>
+        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.1.4"/>
+        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.1.4"/>
+    </dependencies>
+</ivy-module>
