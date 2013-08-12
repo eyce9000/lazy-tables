@@ -13,11 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
-
 import com.grl.tables.annotations.TableColumn;
-import com.grl.tables.serializers.StringSerializer;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -33,6 +29,12 @@ public class Table implements Serializable, Iterable<Table.Row> {
 
 	public Table(List<Map<String, String>> values) {
 		appendAll(values);
+	}
+	
+	public Table(Table... tables){
+		for(Table table:tables){
+			this.appendAll(table);
+		}
 	}
 	
 	public int appendRow(Map<String, String> row) {
@@ -124,17 +126,6 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		return data.get(index);
 	}
 
-	public <T> List<T> getColumnValues(String columnTitle, Class<T> type) {
-		List<T> values = new ArrayList<T>();
-		for (Row row : data) {
-			values.add(row.getAs(columnTitle, type));
-		}
-		return values;
-	}
-	public <T> List<T> getColumnValues(int columnNumber, Class<T> type){
-		String columnTitle = getColumnTitle(columnNumber);
-		return getColumnValues(columnTitle,type);
-	}
 	public boolean hasColumn(String columnTitle) {
 		return this.columnIndices.containsKey(columnTitle);
 	}
@@ -188,138 +179,6 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		return counts;
 	}
 
-	public SummaryStatistics getColumnSummaryStatistics(String columnTitle) {
-		if (!isColumnNumeric(columnTitle))
-			return null;
-
-		SummaryStatistics stats = new SummaryStatistics();
-		for (int i = 0; i < data.size(); i++) {
-			Row row = data.get(i);
-			Double value = row.getAs(columnTitle, Double.class);
-			if (value == null) {
-				Integer intValue = row.getAs(columnTitle, Integer.class);
-				if (intValue != null)
-					value = intValue.doubleValue();
-			}
-			if (value == null) {
-				Float floatValue = row.getAs(columnTitle, Float.class);
-				if (floatValue != null)
-					value = floatValue.doubleValue();
-			}
-			if (value != null)
-				stats.addValue(value.doubleValue());
-		}
-		return stats;
-	}
-
-	public DescriptiveStatistics getColumnDescriptiveStatistics(
-			String columnTitle) {
-		if (!isColumnNumeric(columnTitle))
-			return null;
-
-		DescriptiveStatistics stats = new DescriptiveStatistics();
-		for (int i = 0; i < data.size(); i++) {
-			Row row = data.get(i);
-			Double value = row.getAs(columnTitle, Double.class);
-			if (value == null) {
-				Integer intValue = row.getAs(columnTitle, Integer.class);
-				if (intValue != null)
-					value = intValue.doubleValue();
-			}
-			if (value == null) {
-				Float floatValue = row.getAs(columnTitle, Float.class);
-				if (floatValue != null)
-					value = floatValue.doubleValue();
-			}
-			if (value != null)
-				stats.addValue(value.doubleValue());
-		}
-		return stats;
-	}
-
-	public double[] getColumnValuesDouble(String columnTitle) {
-		double[] values = new double[data.size()];
-		for (int i = 0; i < data.size(); i++) {
-			Row row = data.get(i);
-			Double value = row.getAs(columnTitle, Double.class);
-			if (value == null) {
-				Integer intValue = row.getAs(columnTitle, Integer.class);
-				if (intValue != null)
-					value = intValue.doubleValue();
-			}
-			if (value == null) {
-				Float floatValue = row.getAs(columnTitle, Float.class);
-				if (floatValue != null)
-					value = floatValue.doubleValue();
-			}
-			if (value != null)
-				values[i] = value.doubleValue();
-		}
-		return values;
-	}
-
-	public int[] getColumnValuesInteger(String columnTitle) {
-		int[] values = new int[data.size()];
-		for (int i = 0; i < data.size(); i++) {
-			Row row = data.get(i);
-
-			Integer value = row.getAs(columnTitle, Integer.class);
-			if (value == null) {
-				Double dblValue = row.getAs(columnTitle, Double.class);
-				if (dblValue != null)
-					value = dblValue.intValue();
-			}
-			if (value == null) {
-				Float floatValue = row.getAs(columnTitle, Float.class);
-				if (floatValue != null)
-					value = floatValue.intValue();
-			}
-			if (value != null)
-				values[i] = value.intValue();
-		}
-		return values;
-	}
-
-	public void flushRowsToCSV(CSVWriter writer) throws IOException {
-		for (Row row : data) {
-			String[] rowData = new String[columnTitles.size()];
-			for (String key : row.keySet()) {
-				ColumnSerializer serializer = columnSerializers.get(key);
-				if (serializer == null)
-					serializer = new StringSerializer();
-				rowData[columnIndices.get(key)] = serializer.serialize(row
-						.get(key));
-			}
-			writer.writeNext(rowData);
-		}
-		writer.flush();
-		data.clear();
-	}
-
-	public CSVWriter startWriteToCSV(File out) throws IOException {
-		CSVWriter writer = new CSVWriter(new FileWriter(out));
-		writer.writeNext(columnTitles.toArray(new String[columnTitles.size()]));
-		writer.flush();
-		return writer;
-	}
-
-	public void writeToCSV(File out) throws IOException {
-		CSVWriter writer = new CSVWriter(new FileWriter(out));
-		writer.writeNext(columnTitles.toArray(new String[columnTitles.size()]));
-		for (Row row : data) {
-			String[] rowData = new String[columnTitles.size()];
-			for (String key : row.keySet()) {
-				ColumnSerializer serializer = columnSerializers.get(key);
-				if (serializer == null)
-					serializer = new StringSerializer();
-				rowData[columnIndices.get(key)] = serializer.serialize(row
-						.get(key));
-			}
-			writer.writeNext(rowData);
-		}
-		writer.flush();
-		writer.close();
-	}
 
 	public void clearRows() {
 		data = new ArrayList<Row>();
@@ -345,77 +204,78 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		public Row(Map<String, String> data) {
 			super(data);
 		}
+//		
+//		public Row(Object pojo){
+//			super();
+//			Field[] fields = pojo.getClass().getDeclaredFields();
+//			for(Field field:fields){
+//
+//				boolean wasPublic = field.isAccessible();
+//				field.setAccessible(true);
+//				TableColumn annotation = field.getAnnotation(TableColumn.class);
+//				if(annotation!=null){
+//					String key = annotation.name();
+//					try {
+//						String value = (String)field.get(pojo);
+//						if(key!=null){
+//							this.put(key, value);
+//						}
+//					} catch(Exception ex){
+//						ex.printStackTrace();
+//					}
+//				}
+//				field.setAccessible(wasPublic);
+//			}
+//		}
+//		
+//		public <T> T deserialize(Class<T> type){
+//			return deserialize(type,null);
+//		}
+//		
+//		private <T> T deserialize(Class<T> type, String domain){
+//			try{
+//				T object = type.newInstance();
+//				Field[] fields = object.getClass().getDeclaredFields();
+//				
+//				for(Field field :fields){
+//					
+//					boolean wasPublic = field.isAccessible();
+//					field.setAccessible(true);
+//					TableColumn annotation = field.getAnnotation(TableColumn.class);
+//					if(annotation!=null){
+//						String key = annotation.name();
+//						try {
+//							Object value = this.get(key);
+//							if(key!=null && value!=null){
+//								if(field.getType().isInstance("")){
+//									field.set(object, value.toString());
+//								}
+//								else{
+//									field.set(object,value);
+//								}
+//							}
+//						} catch(Exception ex){
+//							ex.printStackTrace();
+//						}
+//					}
+//					field.setAccessible(wasPublic);
+//				}
+//				return object;
+//			}
+//			catch(Exception ex){
+//				ex.printStackTrace();
+//				return null;
+//			}
+//		}
 		
-		public Row(Object pojo){
-			super();
-			Field[] fields = pojo.getClass().getDeclaredFields();
-			for(Field field:fields){
-
-				boolean wasPublic = field.isAccessible();
-				field.setAccessible(true);
-				TableColumn annotation = field.getAnnotation(TableColumn.class);
-				if(annotation!=null){
-					String key = annotation.name();
-					try {
-						String value = (String)field.get(pojo);
-						if(key!=null){
-							this.put(key, value);
-						}
-					} catch(Exception ex){
-						ex.printStackTrace();
-					}
-				}
-				field.setAccessible(wasPublic);
-			}
-		}
-		
-		public <T> T deserialize(Class<T> type){
-			return deserialize(type,null);
-		}
-		
-		private <T> T deserialize(Class<T> type, String domain){
-			try{
-				T object = type.newInstance();
-				Field[] fields = object.getClass().getDeclaredFields();
-				
-				for(Field field :fields){
-					
-					boolean wasPublic = field.isAccessible();
-					field.setAccessible(true);
-					TableColumn annotation = field.getAnnotation(TableColumn.class);
-					if(annotation!=null){
-						String key = annotation.name();
-						try {
-							Object value = this.get(key);
-							if(key!=null && value!=null){
-								if(field.getType().isInstance("")){
-									field.set(object, value.toString());
-								}else{
-									field.set(object,value);
-								}
-							}
-						} catch(Exception ex){
-							ex.printStackTrace();
-						}
-					}
-					field.setAccessible(wasPublic);
-				}
-				return object;
-			}
-			catch(Exception ex){
-				ex.printStackTrace();
-				return null;
-			}
-		}
-		
-		public <T> T getAs(String key, Class<T> type) {
-			Object value = get(key);
-			try {
-				return type.cast(value);
-			} catch (ClassCastException ex) {
-				return null;
-			}
-		}
+//		public <T> T getAs(String key, Class<T> type) {
+//			Object value = get(key);
+//			try {
+//				return type.cast(value);
+//			} catch (ClassCastException ex) {
+//				return null;
+//			}
+//		}
 	}
 
 }

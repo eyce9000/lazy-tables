@@ -4,6 +4,11 @@
 	<property name="debuglevel" value="source,lines,vars"/>
 	<property name="source" value="1.6"/>
 	<property name="target" value="1.6"/>
+	<property name="build.dir" value="build" />
+	<property name="version" value="3.1.3" />
+	<tstamp>
+		<format property="now" pattern="yyyyMMddHHmmss"/>
+	</tstamp>
 	<path id="Lazy Tables.classpath">
 		<pathelement location="lib/*.jar"/>
 	</path>
@@ -21,5 +26,16 @@
 		<jar destfile="build/lazy.tables.jar" basedir="bin" includes="**/*.class">
 			
 		</jar>
+	</target>
+	<target name="publish-local" depends="resolve,build" description="--> publish this project in the local ivy repository">
+	    <ivy:publish artifactspattern="${build.dir}/[artifact].[ext]" 
+	                    resolver="local"
+	                    pubrevision="${version}"
+	                    pubdate="${now}"
+	                    status="integration"
+	                    forcedeliver="true"
+	    				overwrite="true"
+	    />
+	    <echo message="project ${ant.project.name} published locally with version ${version}" />
 	</target>
 </project>

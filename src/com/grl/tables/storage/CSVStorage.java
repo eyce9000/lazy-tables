@@ -12,13 +12,14 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import com.grl.tables.ColumnSerializer;
+import com.grl.tables.RowSerializer;
 import com.grl.tables.Table;
 import com.grl.tables.Table.Row;
 import com.grl.tables.events.RowReadListener;
-import com.grl.tables.serializers.StringSerializer;
 
 public class CSVStorage {
 	public void storeTable(File file, Table table, boolean overwrite) throws IOException{
+		RowSerializer serializer = new RowSerializer();
 		if(file.getParentFile()!=null)
 			file.getParentFile().mkdirs();
 		CSVWriter writer = new CSVWriter(new FileWriter(file,!overwrite));
@@ -27,8 +28,7 @@ public class CSVStorage {
 		for(Row row:table){
 			String[] rowData = new String[table.columnCount()];
 			for(String key:row.keySet()){
-				ColumnSerializer serializer = new StringSerializer();
-				rowData[table.getColumnIndices().get(key)] = serializer.serialize(row.get(key));
+				rowData[table.getColumnIndices().get(key)] = row.get(key);
 			}
 			writer.writeNext(rowData);
 		}

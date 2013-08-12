@@ -13,7 +13,6 @@
 	<classpathentry kind="lib" path="lib/jackson-databind-2.1.4-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-databind-2.1.4.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-annotations-2.1.4.jar"/>
-	<classpathentry kind="lib" path="lib-static/commons-math3-3.0.jar"/>
 	<classpathentry kind="lib" path="lib-static/opencsv-2.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

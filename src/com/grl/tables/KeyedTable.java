@@ -39,11 +39,18 @@ public class KeyedTable<T> extends Table{
 	public List<String> getKeyedColumns(){
 		return new ArrayList<String>(keyedColumns);
 	}
-	public Row getRow(String column, String value){
+	public boolean containsRow(String column, String value){
 		if(keyIndices.containsKey(column)){
 			HashMap<T,Integer> columnKeys = keyIndices.get(column);
 			if(columnKeys.containsKey(value))
-				return getRow(columnKeys.get(value));
+				return true;
+		}
+		return false;
+	}
+	public Row getRow(String column, String value){
+		if(containsRow(column,value)){
+			HashMap<T,Integer> columnKeys = keyIndices.get(column);
+			return getRow(columnKeys.get(value));
 		}
 		return null;
 	}

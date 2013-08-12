@@ -1,6 +1,9 @@
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
+import com.grl.tables.RowSerializer;
+import com.grl.tables.SerializationException;
 import com.grl.tables.Table;
 import com.grl.tables.Table.Row;
 import com.grl.tables.annotations.TableColumn;
@@ -10,11 +13,16 @@ import com.grl.tables.storage.JSONStorage;
 
 public class PoJoTest {
 	public static void main(String[] args) throws IOException{
-		Object testObj = new Object(){
-			@TableColumn(name="Column Header")
-			private String testValue = "Something";
-		};
-		Table.Row row = new Table.Row(testObj);
+		TestObj testObj = new TestObj();
+		RowSerializer serializer = new RowSerializer();
+		Table.Row row = new Table.Row(serializer.serialize(testObj));
+		try {
+			TestObj test2 = serializer.deserialize(TestObj.class, row);
+			System.out.println(serializer.serialize(test2));
+		} catch (SerializationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Table table = new Table();
 		table.appendRow(row);
 		
@@ -35,4 +43,17 @@ public class PoJoTest {
 		}
 		
 	}
+}
+
+class TestObj{
+	public static enum EnumTest{Value1,Value2};
+	
+	@TableColumn(name="Column Header")
+	private String testValue = "Something";
+	@TableColumn(name="Money", format="%.2f")
+	private double money = 1.256;
+	@TableColumn(name="NullValue")
+	private String value = null;
+	@TableColumn(name="EnumValue")
+	private EnumTest enumValue = EnumTest.Value2;
 }
