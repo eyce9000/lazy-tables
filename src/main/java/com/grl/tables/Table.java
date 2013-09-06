@@ -20,7 +20,6 @@ import au.com.bytecode.opencsv.CSVWriter;
 public class Table implements Serializable, Iterable<Table.Row> {
 	private Map<String, Integer> columnIndices = new HashMap<String, Integer>();
 	private List<String> columnTitles = new ArrayList<String>();
-	private Map<String, ColumnSerializer> columnSerializers = new HashMap<String, ColumnSerializer>();
 	private List<Row> data = new ArrayList<Row>();
 
 	public Table() {
@@ -129,38 +128,17 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	public boolean hasColumn(String columnTitle) {
 		return this.columnIndices.containsKey(columnTitle);
 	}
-
-	public boolean isColumnNumeric(String columnTitle) {
-		for (int i = 0; i < data.size(); i++) {
-			Object value = data.get(i).get(columnTitle);
-			if (value != null)
-				return (value instanceof Double || value instanceof Integer
-						|| value instanceof Float || value instanceof Long);
-
+	public List<String> getColumnValues(String columnTitle) {
+		List<String> values = new ArrayList<String>();
+		for (Row row : data) {
+			values.add(row.get(columnTitle));
 		}
-		return false;
+		return values;
 	}
-
-	public boolean isColumnString(String columnTitle) {
-		for (int i = 0; i < data.size(); i++) {
-			Object value = data.get(i).get(columnTitle);
-			if (value != null)
-				return (value instanceof String);
-
-		}
-		return false;
+	public List<String> getColumnValues(int columnNumber){
+		String columnTitle = getColumnTitle(columnNumber);
+		return getColumnValues(columnTitle);
 	}
-
-	public Class<?> getColumnType(String columnTitle) {
-		for (int i = 0; i < data.size(); i++) {
-			Object value = data.get(i).get(columnTitle);
-			if (value != null)
-				return value.getClass();
-		}
-		return null;
-
-	}
-
 	public Map<String, Integer> getColumnCategoricalCount(String columnTitle) {
 		HashMap<String, Integer> counts = new HashMap<String, Integer>();
 		for (int i = 0; i < data.size(); i++) {
@@ -194,8 +172,6 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	}
 
 	
-	
-	
 	public static class Row extends HashMap<String, String> {
 		public Row() {
 			super();
@@ -204,78 +180,6 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		public Row(Map<String, String> data) {
 			super(data);
 		}
-//		
-//		public Row(Object pojo){
-//			super();
-//			Field[] fields = pojo.getClass().getDeclaredFields();
-//			for(Field field:fields){
-//
-//				boolean wasPublic = field.isAccessible();
-//				field.setAccessible(true);
-//				TableColumn annotation = field.getAnnotation(TableColumn.class);
-//				if(annotation!=null){
-//					String key = annotation.name();
-//					try {
-//						String value = (String)field.get(pojo);
-//						if(key!=null){
-//							this.put(key, value);
-//						}
-//					} catch(Exception ex){
-//						ex.printStackTrace();
-//					}
-//				}
-//				field.setAccessible(wasPublic);
-//			}
-//		}
-//		
-//		public <T> T deserialize(Class<T> type){
-//			return deserialize(type,null);
-//		}
-//		
-//		private <T> T deserialize(Class<T> type, String domain){
-//			try{
-//				T object = type.newInstance();
-//				Field[] fields = object.getClass().getDeclaredFields();
-//				
-//				for(Field field :fields){
-//					
-//					boolean wasPublic = field.isAccessible();
-//					field.setAccessible(true);
-//					TableColumn annotation = field.getAnnotation(TableColumn.class);
-//					if(annotation!=null){
-//						String key = annotation.name();
-//						try {
-//							Object value = this.get(key);
-//							if(key!=null && value!=null){
-//								if(field.getType().isInstance("")){
-//									field.set(object, value.toString());
-//								}
-//								else{
-//									field.set(object,value);
-//								}
-//							}
-//						} catch(Exception ex){
-//							ex.printStackTrace();
-//						}
-//					}
-//					field.setAccessible(wasPublic);
-//				}
-//				return object;
-//			}
-//			catch(Exception ex){
-//				ex.printStackTrace();
-//				return null;
-//			}
-//		}
-		
-//		public <T> T getAs(String key, Class<T> type) {
-//			Object value = get(key);
-//			try {
-//				return type.cast(value);
-//			} catch (ClassCastException ex) {
-//				return null;
-//			}
-//		}
 	}
 
 }

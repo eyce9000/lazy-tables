@@ -101,15 +101,6 @@ public class CSVStorage {
 				row.put(key, null);
 				continue;
 			}
-			//Is the value numeric?
-			//try{
-			//	value = Double.parseDouble(rawValue);
-			//	row.put(key, value);
-			//	continue;
-			//}
-			//catch(NumberFormatException ex){
-				
-			//}
 			row.put(key, rawValue);
 		}
 		return row;

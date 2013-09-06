@@ -1,9 +1,12 @@
 package com.grl.tables;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class KeyedTable<T> extends Table{
 	private HashMap<String, HashMap<T,Integer>> keyIndices = new HashMap<String, HashMap<T, Integer>>();
@@ -19,6 +22,14 @@ public class KeyedTable<T> extends Table{
 			keyIndices.put(key, new HashMap<T,Integer>());
 			this.keyedColumns.add(key);
 		}
+	}
+	public Set<T> getKeyValues(String column){
+		Set<String> keys = new HashSet<String>();
+		HashMap<T,Integer> indices = keyIndices.get(column);
+		if(indices!=null){
+			return indices.keySet();
+		}
+		return null;
 	}
 	public int appendRow(Map<String,String> row){
 		int index = super.appendRow(row);
