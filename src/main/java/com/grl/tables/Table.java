@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.grl.tables.annotations.TableColumn;
+import com.grl.tables.filters.AcceptAllColumnFilter;
+import com.grl.tables.filters.AcceptAllRowFilter;
+import com.grl.tables.filters.ColumnFilter;
+import com.grl.tables.filters.RowFilter;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -25,7 +29,6 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	public Table() {
 
 	}
-
 	public Table(List<Map<String, String>> values) {
 		appendAll(values);
 	}
@@ -86,14 +89,24 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		recalculateColumnIndexes();
 	}
 
-	public void insertStaticColumn(int index, String columnTitle, String value) {
-		columnTitles.add(index, columnTitle);
-		for (Row row : data) {
-			row.put(columnTitle, value);
-		}
-		recalculateColumnIndexes();
+	public Table filter(ColumnFilter columnFilter){
+		return this.filter(new AcceptAllRowFilter(),columnFilter);
 	}
-
+	
+	public Table filter(RowFilter rowFilter){
+		return this.filter(rowFilter,new AcceptAllColumnFilter());
+	}
+	
+	public Table filter(RowFilter rowFilter, ColumnFilter columnFilter){
+		Table table = new Table();
+		for(Row row : this){
+			if(rowFilter.acceptsRow(row)){
+				table.appendRow(row.filter(columnFilter));
+			}
+		}
+		return table;
+	}
+	
 	private void recalculateColumnIndexes() {
 		columnIndices.clear();
 		for (int i = 0; i < columnTitles.size(); i++) {
@@ -156,7 +169,29 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		}
 		return counts;
 	}
+	public Map<String, Integer> getColumnCategoricalCount(String... columnTitles) {
+		HashMap<String, Integer> counts = new HashMap<String, Integer>();
+		for (int i = 0; i < data.size(); i++) {
+			Row row = data.get(i);
+			String combinedKey="";
+			for(String columnTitle:columnTitles){
+				String rawValue = row.get(columnTitle);
+				if (rawValue == null) 
+					rawValue = "NULL";
 
+				if(!combinedKey.isEmpty())
+					combinedKey+=",";
+				
+				combinedKey+=rawValue;
+			}
+			if (!counts.containsKey(combinedKey)) {
+				counts.put(combinedKey, 1);
+			} else {
+				counts.put(combinedKey, counts.get(combinedKey) + 1);
+			}
+		}
+		return counts;
+	}
 
 	public void clearRows() {
 		data = new ArrayList<Row>();
@@ -179,6 +214,16 @@ public class Table implements Serializable, Iterable<Table.Row> {
 
 		public Row(Map<String, String> data) {
 			super(data);
+		}
+		
+		public Row filter(ColumnFilter columnFilter){
+			Row row = new Row();
+			for(String key:this.keySet()){
+				if(columnFilter.acceptsColumn(key)){
+					row.put(key,this.get(key));
+				}
+			}
+			return row;
 		}
 	}
 
