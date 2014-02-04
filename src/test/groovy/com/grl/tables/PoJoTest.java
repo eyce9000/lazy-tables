@@ -3,7 +3,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import com.grl.tables.RowSerializer;
+import com.grl.tables.RowColumnSerializer;
 import com.grl.tables.SerializationException;
 import com.grl.tables.Table;
 import com.grl.tables.Table.Row;
@@ -15,15 +15,10 @@ import com.grl.tables.storage.JSONStorage;
 public class PoJoTest {
 	public static void main(String[] args) throws IOException{
 		TestObj testObj = new TestObj();
-		RowSerializer serializer = new RowSerializer();
+		Serializer serializer = new RowObjectSerializer();
 		Table.Row row = new Table.Row(serializer.serialize(testObj));
-		try {
-			TestObj test2 = serializer.deserialize(TestObj.class, row);
-			System.out.println(serializer.serialize(test2));
-		} catch (SerializationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		TestObj test2 = serializer.deserialize(TestObj.class, row);
+		System.out.println(serializer.serialize(test2));
 		Table table = new Table();
 		table.appendRow(row);
 		

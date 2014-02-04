@@ -12,17 +12,39 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
 import com.grl.tables.ColumnSerializer;
-import com.grl.tables.RowSerializer;
+import com.grl.tables.RowColumnSerializer;
 import com.grl.tables.Table;
 import com.grl.tables.Table.Row;
 import com.grl.tables.events.RowReadListener;
 
 public class CSVStorage {
 	public void storeTable(File file, Table table, boolean overwrite) throws IOException{
-		RowSerializer serializer = new RowSerializer();
 		if(file.getParentFile()!=null)
 			file.getParentFile().mkdirs();
 		CSVWriter writer = new CSVWriter(new FileWriter(file,!overwrite));
+		storeTable(writer,table,overwrite);
+	}
+
+	public void storeTable(File file, Table table, boolean overwrite,char separator) throws IOException{
+		if(file.getParentFile()!=null)
+			file.getParentFile().mkdirs();
+		CSVWriter writer = new CSVWriter(new FileWriter(file,!overwrite),separator);
+		storeTable(writer,table,overwrite);
+	}
+	public void storeTable(File file, Table table, boolean overwrite,char separator, char quoteChar) throws IOException{
+		if(file.getParentFile()!=null)
+			file.getParentFile().mkdirs();
+		CSVWriter writer = new CSVWriter(new FileWriter(file,!overwrite),separator,quoteChar);
+		storeTable(writer,table,overwrite);
+	}
+	public void storeTable(File file, Table table, boolean overwrite,char separator, char quoteChar,char lineEnding) throws IOException{
+		if(file.getParentFile()!=null)
+			file.getParentFile().mkdirs();
+		CSVWriter writer = new CSVWriter(new FileWriter(file,!overwrite),separator,quoteChar,lineEnding);
+		storeTable(writer,table,overwrite);
+	}
+	
+	private void storeTable( CSVWriter writer, Table table, boolean overwrite) throws IOException{
 		if(overwrite) //Write Column Headers
 			writer.writeNext(table.getColumnsTitles().toArray(new String[table.columnCount()]));
 		for(Row row:table){

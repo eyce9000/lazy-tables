@@ -17,16 +17,26 @@
     </target>
 	<target name="test">
 	</target>
+	<target name="prepare">
+		<ivy:resolve />
+		<ivy:deliver deliverpattern="${build.dir}/ivy.xml" pubrevision="${version}" status="release"/>
+	    <!-- Generate the Maven POM -->
+	    <ivy:makepom ivyfile="${build.dir}/ivy.xml" pomfile="${build.dir}/lazytables.pom"/>
+	</target>
 	<target name="build">
 		<mkdir dir="bin" />
-		<echo message="${ant.project.name}: ${ant.file}"/>
 		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
 			<src path="src/main/java" />
 			<classpath refid="Lazy Tables.classpath" />
 		</javac>
+    	<copy todir="bin">
+    	    <fileset dir="src"
+    	             includes="**/*.java" />
+    	</copy>
 		<mkdir dir="${build.dir}" />
 		<jar destfile="${build.dir}/lazy-tables.jar" basedir="bin" includes="**/*.class">
-			
+		</jar>
+		<jar destfile="${build.dir}/lazy-tables-sources.jar" basedir="bin" includes="**/*.java">
 		</jar>
 	</target>
 	<target name="publish-local" depends="resolve,build,test" description="--> publish this project in the local ivy repository">

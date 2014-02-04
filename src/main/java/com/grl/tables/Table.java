@@ -25,6 +25,7 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	private Map<String, Integer> columnIndices = new HashMap<String, Integer>();
 	private List<String> columnTitles = new ArrayList<String>();
 	private List<Row> data = new ArrayList<Row>();
+	private Serializer serializer = new RowObjectSerializer();
 
 	public Table() {
 
@@ -49,6 +50,9 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		data.add(new Row(row));
 		return data.size() - 1;
 	}
+	public int appendPojo(Object obj){
+		return appendRow(serializer.serialize(obj));
+	}
 	public void appendAll(Collection<Map<String,String>> rows){
 		for (Map<String, String> row : rows) {
 			appendRow(row);
@@ -57,6 +61,11 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	public void appendAll(Table table) {
 		for (Row row : table.data) {
 			appendRow(row);
+		}
+	}
+	public void appendAllPojo(Collection<Object> values){
+		for(Object obj:values){
+			appendPojo(obj);
 		}
 	}
 
@@ -107,6 +116,10 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		return table;
 	}
 	
+	public void setSerializer(Serializer serializer){
+		this.serializer = serializer;
+	}
+	
 	private void recalculateColumnIndexes() {
 		columnIndices.clear();
 		for (int i = 0; i < columnTitles.size(); i++) {
@@ -133,7 +146,7 @@ public class Table implements Serializable, Iterable<Table.Row> {
 	public int rowCount(){
 		return data.size();
 	}
-
+	
 	public Row getRow(int index) {
 		return data.get(index);
 	}
@@ -202,6 +215,24 @@ public class Table implements Serializable, Iterable<Table.Row> {
 		return data.iterator();
 	}
 
+	public <T> Iterator<T> getTypeIterator(final Class<? extends T> clazz){
+		return new Iterator<T>(){
+			Iterator<Row> iterator=iterator();
+			@Override
+			public boolean hasNext() {
+				return iterator.hasNext();
+			}
+
+			@Override
+			public T next() {
+				return serializer.deserialize(clazz, iterator.next());
+			}
+
+			@Override
+			public void remove() {}
+		};
+	}
+	
 	public List<Row> getRows() {
 		return new ArrayList<Row>(data);
 	}

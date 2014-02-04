@@ -2,17 +2,16 @@ package com.grl.tables;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.grl.tables.annotations.TableColumn;
 
-public class RowSerializer {
+public class RowColumnSerializer implements Serializer{
 	private Map<Class,Map<Field,ColumnSerializer>> configurations = new HashMap<Class,Map<Field,ColumnSerializer>>();
 	
-	public <T> T deserialize(Class<? extends T> clazz, Map<String,String> row) throws SerializationException{
+	public <T> T deserialize(Class<? extends T> clazz, Map<String,String> row){
 		try{
 			Map<Field,ColumnSerializer> serializers = getConfiguration(clazz);
 			Constructor c = clazz.getDeclaredConstructor();
@@ -29,8 +28,16 @@ public class RowSerializer {
 						String value = row.get(key);
 						if(key!=null && value!=null){
 							ColumnSerializer colSerializer = entry.getValue();
-							if(colSerializer.accepts(field.getType()))
-								field.set(object,entry.getValue().deserialize(field.getType(), value));
+							if(colSerializer.accepts(field.getType())){
+								try{
+									Object valueTyped = entry.getValue().deserialize(field.getType(), value);
+									field.set(object,valueTyped);
+								}
+								catch(IllegalAccessException iae){
+									throw new Exception(String.format("Unable to set field at %s.%s",clazz.getName(),field.getName())
+											,iae);
+								}
+							}
 							else
 								throw new SerializationException(String.format("Column serializer %s cannot deserialize the class %s",colSerializer.getClass().getName(),field.getType().getName()));
 						}
@@ -38,12 +45,11 @@ public class RowSerializer {
 						ex.printStackTrace();
 					}
 				}
-				field.setAccessible(wasPublic);
 			}
 			return object;
 		}
 		catch(Exception ex){
-			throw new SerializationException(ex);
+			throw new RuntimeException(ex);
 		}
 	}
 	public Map<String,String> serialize(Object pojo){

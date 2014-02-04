@@ -1,5 +1,6 @@
 package com.grl.tables;
 
+
 public abstract class ColumnSerializer {
 	protected final String format;
 	public ColumnSerializer(String format){
