@@ -4,3 +4,6 @@ temp
 build
 lib
 bin
+.groovy/
+.settings/
+gradle.properties

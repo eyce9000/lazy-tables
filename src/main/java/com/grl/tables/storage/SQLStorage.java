@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +24,20 @@ public abstract class SQLStorage {
 	public Table tableFromQuery(String string) throws SQLException{
 		return tableFromResultSet(conn.createStatement().executeQuery(string));
 	}
+	public Table tableFromQuery(PreparedStatement ps) throws SQLException{
+		return tableFromResultSet(ps.executeQuery());
+	}
 	public Table tableFromQuery(String string, Object... parameters) throws SQLException{
-		return tableFromQuery(String.format(string,parameters));
+		try(PreparedStatement ps = conn.prepareStatement(string)){
+			for(int i=0; i<parameters.length; i++){
+				Object param = parameters[i];
+				if(param!=null)
+					ps.setObject(i+1, param);
+				else
+					ps.setNull(i+1, Types.VARCHAR);
+			}
+			return tableFromQuery(ps);
+		}
 	}
 	public Table tableFromResultSet(ResultSet rs) throws SQLException{
 		return tableFromResultSet(new Table(),rs);
@@ -117,7 +130,7 @@ public abstract class SQLStorage {
 		String part1 = "INSERT INTO "+schemaname+"."+tablename+" (";
 		String part2 = "VALUES(";
 		for(int i=0; i<table.getColumnsTitles().size(); i++){
-			String column = table.getColumnsTitles().get(i);
+			String column = table.getColumnsTitles().get(i).trim();
 			String fixedColumn = column.replaceAll("\\s+", "_");
 			part1+=" "+fixedColumn;
 			part2+=" ?";

@@ -1,18 +1,29 @@
 package com.grl.tables.transforms;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import com.grl.tables.transforms.RowTransform.Mode;
 
 public class RowTransformFactory {
-	private Map<String,String> fields = new HashMap<String,String>();
+	private Map<String,List<String>> fields = new HashMap<String,List<String>>();
 	private Map<String,String> defaults = new HashMap<String,String>();
 	private Map<String,ColumnTransform> colTransforms = new HashMap<String,ColumnTransform>();
 	private Map<String,ColumnBuilder> colBuilders = new HashMap<String,ColumnBuilder>();
 	
 	public RowTransformFactory putField(String oldFieldName,String newFieldName){
-		fields.put(oldFieldName,newFieldName);
+		List<String> newFieldNames;
+		if(fields.containsKey(oldFieldName)){
+			newFieldNames = fields.get(oldFieldName);
+			newFieldNames.add(newFieldName);
+		}
+		else{
+			newFieldNames = new LinkedList<String>();
+			newFieldNames.add(newFieldName);
+			fields.put(oldFieldName,newFieldNames);
+		}
 		return this;
 	}
 	public RowTransformFactory putFieldAndDefault(String oldFieldName,String newFieldName,String defaultValue){
@@ -31,7 +42,8 @@ public class RowTransformFactory {
 		return this;
 	}
 	public RowTransform buildUnion(){
-		RowTransform transform = new RowTransform(fields);
+		RowTransform transform = new RowTransform();
+		transform.setFieldNameMapping(fields);
 		transform.setColumnTransforms(colTransforms);
 		transform.setColumnBuilders(colBuilders);
 		transform.setFieldDefaults(defaults);
@@ -39,7 +51,8 @@ public class RowTransformFactory {
 		return transform;
 	}
 	public RowTransform buildIntersection(){
-		RowTransform transform = new RowTransform(fields);
+		RowTransform transform = new RowTransform();
+		transform.setFieldNameMapping(fields);
 		transform.setColumnTransforms(colTransforms);
 		transform.setColumnBuilders(colBuilders);
 		transform.setFieldDefaults(defaults);

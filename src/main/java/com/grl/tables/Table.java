@@ -225,7 +225,10 @@ public class Table implements Serializable, Iterable<Table.Row> {
 
 			@Override
 			public T next() {
-				return serializer.deserialize(clazz, iterator.next());
+				if(iterator.hasNext())
+					return serializer.deserialize(clazz, iterator.next());
+				else
+					return null;
 			}
 
 			@Override
